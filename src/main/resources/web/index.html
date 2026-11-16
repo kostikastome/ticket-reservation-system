@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SkyReserve - Cheap flights across Europe</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%232952ff'/%3E%3Cpath d='M7 18l18-7-5 13-4-5-6 4 2-6z' fill='white'/%3E%3C/svg%3E">
+    <link rel="stylesheet" href="/styles.css">
+    <script src="/app.js" defer></script>
+</head>
+<body>
+<header class="topbar">
+    <div class="topbar-inner">
+        <a class="brand" href="#" id="brand">
+            <span class="brand-mark" aria-hidden="true">
+                <svg viewBox="0 0 32 32"><path d="M7 18l18-7-5 13-4-5-6 4 2-6z"/></svg>
+            </span>
+            <span>Sky<b>Reserve</b></span>
+        </a>
+        <nav class="nav" aria-label="Main">
+            <button class="nav-link active" data-view="book">Book</button>
+            <button class="nav-link" data-view="trips">My trips</button>
+            <button class="nav-link" data-view="flights">Timetable</button>
+        </nav>
+        <div class="account" id="account"></div>
+    </div>
+</header>
+
+<main>
+    <section id="view-book" class="view">
+        <div class="hero">
+            <div class="hero-inner">
+                <p class="eyebrow">10 airports · 700+ flights · no hidden fees</p>
+                <h1>Fly further.<br><span>Pay less.</span></h1>
+
+                <form class="search-card" id="search-form" autocomplete="off">
+                    <div class="tabs" role="radiogroup" aria-label="Trip type">
+                        <button type="button" class="tab active" data-trip="ROUND_TRIP" role="radio" aria-checked="true">Return</button>
+                        <button type="button" class="tab" data-trip="ONE_WAY" role="radio" aria-checked="false">One way</button>
+                    </div>
+                    <div class="search-grid">
+                        <label class="search-field">
+                            <span class="search-label">From</span>
+                            <select id="origin" required></select>
+                        </label>
+                        <button type="button" class="swap" id="swap" title="Swap airports" aria-label="Swap airports">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h11l-3-3M17 17H6l3 3"/></svg>
+                        </button>
+                        <label class="search-field">
+                            <span class="search-label">To</span>
+                            <select id="destination" required disabled></select>
+                        </label>
+                        <button type="submit" class="btn cta search-btn" id="search-btn" disabled>
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+                            Search flights
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="container">
+            <div id="home">
+                <section class="section">
+                    <div class="section-head">
+                        <h2>Hot deals</h2>
+                        <p>The cheapest fare to each destination in the next 30 days.</p>
+                    </div>
+                    <div class="deals" id="deals"></div>
+                </section>
+
+                <section class="perks">
+                    <div class="perk">
+                        <div class="perk-icon" aria-hidden="true">€</div>
+                        <div><h3>No hidden fees</h3><p>See every fare and bag fee line by line before you pay.</p></div>
+                    </div>
+                    <div class="perk">
+                        <div class="perk-icon" aria-hidden="true">↺</div>
+                        <div><h3>Free cancellation</h3><p>Change of plans? Cancel up to 24 hours before take-off.</p></div>
+                    </div>
+                    <div class="perk">
+                        <div class="perk-icon" aria-hidden="true">✓</div>
+                        <div><h3>Never overbooked</h3><p>Seats are reserved the moment you book. Your seat is yours.</p></div>
+                    </div>
+                </section>
+            </div>
+
+            <div id="booking" class="hidden">
+                <ol class="progress" aria-label="Booking progress">
+                    <li class="active" data-progress="1"><span>1</span>Flights</li>
+                    <li data-progress="2"><span>2</span>Travellers &amp; fare</li>
+                    <li data-progress="3"><span>3</span>Confirmation</li>
+                </ol>
+
+                <div id="step-outbound" class="step">
+                    <div class="step-head">
+                        <h2 id="outbound-title">Outbound</h2>
+                        <p id="outbound-sub"></p>
+                    </div>
+                    <div class="date-carousel">
+                        <button type="button" class="carousel-btn" data-scroll="outbound-dates" data-dir="-1" aria-label="Earlier dates">‹</button>
+                        <div class="date-strip" id="outbound-dates"></div>
+                        <button type="button" class="carousel-btn" data-scroll="outbound-dates" data-dir="1" aria-label="Later dates">›</button>
+                    </div>
+                    <div class="flight-list" id="outbound-flights"></div>
+                </div>
+
+                <div id="step-return" class="step hidden">
+                    <div class="step-head">
+                        <h2 id="return-title">Return</h2>
+                        <p id="return-sub"></p>
+                    </div>
+                    <div class="date-carousel">
+                        <button type="button" class="carousel-btn" data-scroll="return-dates" data-dir="-1" aria-label="Earlier dates">‹</button>
+                        <div class="date-strip" id="return-dates"></div>
+                        <button type="button" class="carousel-btn" data-scroll="return-dates" data-dir="1" aria-label="Later dates">›</button>
+                    </div>
+                    <div class="flight-list" id="return-flights"></div>
+                </div>
+
+                <div id="step-details" class="step hidden">
+                    <div class="step-head">
+                        <h2>Choose your fare</h2>
+                        <p>Fare prices are per person for the whole trip.</p>
+                    </div>
+                    <div class="details-layout">
+                        <div class="details-main">
+                            <div class="fares" id="fares" role="radiogroup" aria-label="Fare"></div>
+
+                            <div class="card extras">
+                                <div class="extra">
+                                    <div>
+                                        <h3>Passengers</h3>
+                                        <p>Up to 9 on one booking</p>
+                                    </div>
+                                    <div class="stepper">
+                                        <button type="button" id="pax-minus" aria-label="Fewer passengers">−</button>
+                                        <output id="pax-count">1</output>
+                                        <button type="button" id="pax-plus" aria-label="More passengers">+</button>
+                                    </div>
+                                </div>
+                                <label class="extra toggle">
+                                    <div>
+                                        <h3>Checked bag (23 kg)</h3>
+                                        <p id="bag-fee"></p>
+                                    </div>
+                                    <input type="checkbox" id="baggage">
+                                    <span class="toggle-track" aria-hidden="true"></span>
+                                </label>
+                            </div>
+
+                            <div class="card">
+                                <h3 class="card-title">Who's travelling?</h3>
+                                <p class="card-sub">Names must match the passport or ID card.</p>
+                                <div id="passenger-forms"></div>
+                            </div>
+                        </div>
+
+                        <aside class="card summary" aria-live="polite">
+                            <h3>Your trip</h3>
+                            <div id="summary-flights"></div>
+                            <div id="quote-lines"></div>
+                            <div class="total-row">
+                                <span>Total</span>
+                                <strong id="quote-total">–</strong>
+                            </div>
+                            <button class="btn cta block" id="book-btn" type="button">Book and pay</button>
+                            <p class="fine-print">Free cancellation until 24 hours before departure.</p>
+                        </aside>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="view-confirmation" class="view hidden">
+        <div class="container narrow">
+            <div class="confirm-head">
+                <div class="check" aria-hidden="true">✓</div>
+                <h1>You're going places!</h1>
+                <p>Your booking is confirmed. Show your reference at check-in.</p>
+            </div>
+            <div id="confirm-passes"></div>
+            <div class="confirm-total" id="confirm-total"></div>
+            <div class="confirm-actions">
+                <button class="btn secondary" data-view="trips">View my trips</button>
+                <button class="btn cta" id="book-another">Book another flight</button>
+            </div>
+        </div>
+    </section>
+
+    <section id="view-trips" class="view hidden">
+        <div class="page-hero">
+            <div class="container">
+                <h1>My trips</h1>
+                <p>Your upcoming and past bookings.</p>
+            </div>
+        </div>
+        <div class="container">
+            <div id="trips"></div>
+        </div>
+    </section>
+
+    <section id="view-flights" class="view hidden">
+        <div class="page-hero">
+            <div class="container">
+                <h1>Timetable</h1>
+                <p>Every flight in the next 30 days.</p>
+                <input type="search" id="flight-filter" class="filter" placeholder="Search by city, country, airport or flight number" aria-label="Filter flights">
+            </div>
+        </div>
+        <div class="container">
+            <div class="card table-card">
+                <table class="flights-table">
+                    <thead>
+                    <tr>
+                        <th>Flight</th><th>Route</th><th>Departs</th><th>Arrives</th><th>Duration</th>
+                        <th class="num">Economy</th><th class="num">First</th><th class="num">Seats</th>
+                    </tr>
+                    </thead>
+                    <tbody id="flights-body"></tbody>
+                </table>
+                <p class="table-note" id="flights-note"></p>
+            </div>
+        </div>
+    </section>
+</main>
+
+<footer class="footer">
+    <div class="container footer-inner">
+        <span class="brand small"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M7 18l18-7-5 13-4-5-6 4 2-6z"/></svg></span><span>Sky<b>Reserve</b></span></span>
+        <span>A demo flight reservation system built with plain Java. Not a real airline.</span>
+    </div>
+</footer>
+
+<dialog id="auth-dialog" class="dialog">
+    <form method="dialog" class="dialog-body" id="auth-form" novalidate>
+        <button class="close" value="cancel" formnovalidate aria-label="Close">×</button>
+        <h3 id="auth-title">Welcome back</h3>
+        <p class="dialog-hint" id="auth-hint"></p>
+        <div class="tabs light" role="tablist">
+            <button type="button" class="tab active" data-auth="login">Log in</button>
+            <button type="button" class="tab" data-auth="register">Create account</button>
+        </div>
+        <label class="field">
+            <span>Email</span>
+            <input type="email" id="auth-email" autocomplete="email" required>
+        </label>
+        <label class="field">
+            <span>Password</span>
+            <input type="password" id="auth-password" autocomplete="current-password" required>
+        </label>
+        <label class="field hidden" id="confirm-field">
+            <span>Repeat password</span>
+            <input type="password" id="auth-password2" autocomplete="new-password">
+        </label>
+        <p class="form-error" id="auth-error" role="alert"></p>
+        <button class="btn cta block" id="auth-submit" type="submit" value="default">Log in</button>
+    </form>
+</dialog>
+
+<dialog id="confirm-dialog" class="dialog">
+    <form method="dialog" class="dialog-body">
+        <h3 id="confirm-title"></h3>
+        <p id="confirm-text"></p>
+        <div class="confirm-actions">
+            <button class="btn secondary" value="no">Keep booking</button>
+            <button class="btn danger" value="yes">Cancel booking</button>
+        </div>
+    </form>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

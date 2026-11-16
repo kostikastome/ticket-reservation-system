@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  build:
+    name: Build and test (Java ${{ matrix.java }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java: [ '17', '21' ]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+          cache: maven
+      - name: Build, run tests and package
+        run: mvn --batch-mode --no-transfer-progress verify
+
+  mysql-integration:
+    name: Repository tests against MySQL 8
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: root
+        ports: [ '3306:3306' ]
+        options: >-
+          --health-cmd="mysqladmin ping -proot"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - name: Run the JDBC repository contract tests on MySQL
+        # Each test creates its own empty database via createDatabaseIfNotExist.
+        run: >
+          mvn --batch-mode --no-transfer-progress test -Dtest=JdbcRepositoryTest
+          -Dsurefire.failIfNoSpecifiedTests=false
+          "-Dtest.jdbc.url=jdbc:mysql://127.0.0.1:3306/{db}?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false"
+          -Dtest.jdbc.user=root -Dtest.jdbc.password=root
